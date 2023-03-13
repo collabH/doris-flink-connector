@@ -502,13 +502,16 @@ public class RestService implements Serializable {
     public static List<PartitionDefinition> findPartitions(DorisOptions options, DorisReadOptions readOptions, Logger logger) throws DorisException {
         String[] tableIdentifiers = parseIdentifier(options.getTableIdentifier(), logger);
         String readFields = StringUtils.isBlank(readOptions.getReadFields()) ? "*" : readOptions.getReadFields();
+        // 将配置的db.table和读取的字段翻译成select readFields from tableIdentifier；
         String sql = "select " + readFields +
                 " from `" + tableIdentifiers[0] + "`.`" + tableIdentifiers[1] + "`";
+        // 添加过滤条件
         if (!StringUtils.isEmpty(readOptions.getFilterQuery())) {
             sql += " where " + readOptions.getFilterQuery();
         }
         logger.debug("Query SQL Sending to Doris FE is: '{}'.", sql);
 
+        // 调用doris fe api获取sql结果
         HttpPost httpPost = new HttpPost(getUriStr(options, logger) + QUERY_PLAN);
         String entity = "{\"sql\": \"" + sql + "\"}";
         logger.debug("Post body Sending to Doris FE is: '{}'.", entity);

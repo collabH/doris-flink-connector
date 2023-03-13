@@ -33,16 +33,20 @@ import java.util.Queue;
 
 /**
  * The {@link SplitReader} implementation for the doris source.
+ * split reader
  **/
 public class DorisSourceSplitReader
         implements SplitReader<List, DorisSourceSplit> {
 
     private static final Logger LOG = LoggerFactory.getLogger(DorisSourceSplitReader.class);
 
+    // split队列
     private final Queue<DorisSourceSplit> splits;
     private final DorisOptions options;
     private final DorisReadOptions readOptions;
+    // doris数据读取器
     private DorisValueReader valueReader;
+    // 当前splitid
     private String currentSplitId;
 
     public DorisSourceSplitReader(DorisOptions options, DorisReadOptions readOptions) {
@@ -51,13 +55,21 @@ public class DorisSourceSplitReader
         this.splits = new ArrayDeque<>();
     }
 
+    /**
+     * 从doris服务器拉取数据
+     * @return
+     * @throws IOException
+     */
     @Override
     public RecordsWithSplitIds<List> fetch() throws IOException {
+        // 校验是否可以读取split
         checkSplitOrStartNext();
 
+        // 最后一次读取
         if (!valueReader.hasNext()) {
             return finishSplit();
         }
+        // 构建DorisSplitRecords
         return DorisSplitRecords.forRecords(currentSplitId, valueReader);
     }
 

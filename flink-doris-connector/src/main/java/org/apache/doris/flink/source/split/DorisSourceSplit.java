@@ -27,6 +27,9 @@ import java.util.Objects;
  **/
 public class DorisSourceSplit implements SourceSplit {
 
+    /**
+     * 分区定义包含db、table、doris beaddress、tabletIds、queryPlan
+     */
     private final PartitionDefinition partitionDefinition;
 
     /**
@@ -40,6 +43,10 @@ public class DorisSourceSplit implements SourceSplit {
         this.partitionDefinition = partitionDefinition;
     }
 
+    /**
+     * splitId为be的地址
+     * @return
+     */
     @Override
     public String splitId() {
         return partitionDefinition.getBeAddress();

@@ -30,7 +30,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * A {@link SourceReader} that read records from {@link DorisSourceSplit}.
+ * A {@link SourceReader} that read records from {@link DorisSourceSplit}.\
+ * 基础Flink提供的SingleThreadMultiplexSourceReaderBase SourceReader模版
  **/
 public class DorisSourceReader<T>
         extends SingleThreadMultiplexSourceReaderBase<List, T, DorisSourceSplit, DorisSourceSplitState> {
@@ -48,6 +49,7 @@ public class DorisSourceReader<T>
     public void start() {
         // we request a split only if we did not get splits during the checkpoint restore
         if (getNumberOfCurrentlyAssignedSplits() == 0) {
+            // 发送split请求
             context.sendSplitRequest();
         }
     }
@@ -59,6 +61,7 @@ public class DorisSourceReader<T>
 
     @Override
     protected DorisSourceSplitState initializedState(DorisSourceSplit split) {
+        // 处理化split
         return new DorisSourceSplitState(split);
     }
 

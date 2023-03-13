@@ -26,11 +26,15 @@ import java.util.List;
 
 /**
  * The {@link RecordEmitter} implementation for {@link DorisSourceReader}.
+ * doris数据输出器
  **/
 public class DorisRecordEmitter<T>
         implements RecordEmitter<List, T, DorisSourceSplitState> {
 
     private final DorisDeserializationSchema<T> dorisDeserializationSchema;
+    /**
+     * SourceOutput包装器
+     */
     private final OutputCollector<T> outputCollector;
 
 
@@ -43,6 +47,7 @@ public class DorisRecordEmitter<T>
     @Override
     public void emitRecord(List value, SourceOutput<T> output, DorisSourceSplitState splitState) throws Exception {
         outputCollector.output = output;
+        // 反序列化并且将数据输出
         dorisDeserializationSchema.deserialize(value, outputCollector);
     }
 

@@ -58,17 +58,21 @@ public class DorisSourceEnumerator
 
     @Override
     public void handleSplitRequest(int subtaskId, @Nullable String hostname) {
+        // 判断当前subtask是否已经注册reader，没有注册则跳过
         if (!context.registeredReaders().containsKey(subtaskId)) {
             // reader failed between sending the request and now. skip this request.
             return;
         }
 
+        // 获取下一个需要处理的split
         final Optional<DorisSourceSplit> nextSplit = splitAssigner.getNext(hostname);
         if (nextSplit.isPresent()) {
             final DorisSourceSplit split = nextSplit.get();
+            // 分配split到subtask
             context.assignSplit(split, subtaskId);
             LOG.info("Assigned split to subtask {} : {}", subtaskId, split);
         } else {
+            // 通知改subtask没有更多的split了
             context.signalNoMoreSplits(subtaskId);
             LOG.info("No more splits available for subtask {}", subtaskId);
         }
@@ -87,6 +91,7 @@ public class DorisSourceEnumerator
 
     @Override
     public PendingSplitsCheckpoint snapshotState(long checkpointId) throws Exception {
+        // 触发ck
         return splitAssigner.snapshotState(checkpointId);
     }
 

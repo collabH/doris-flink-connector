@@ -52,9 +52,14 @@ import static org.apache.doris.flink.cfg.ConfigurationOptions.DORIS_EXEC_MEM_LIM
 import static org.apache.doris.flink.cfg.ConfigurationOptions.DORIS_REQUEST_QUERY_TIMEOUT_S_DEFAULT;
 import static org.apache.doris.flink.util.ErrorMessages.SHOULD_NOT_HAPPEN_MESSAGE;
 
+/**
+ * doris核心数据读取器
+ */
 public class DorisValueReader implements AutoCloseable {
     private static final Logger LOG = LoggerFactory.getLogger(DorisValueReader.class);
+    // doris be客户端
     protected BackendClient client;
+    // 客户端锁，防止多次初始化be client scanner
     protected Lock clientLock = new ReentrantLock();
 
     private PartitionDefinition partition;
@@ -133,6 +138,7 @@ public class DorisValueReader implements AutoCloseable {
         return params;
     }
 
+    //异步线程 拉取数据放入本地阻塞队列
     protected Thread asyncThread = new Thread(new Runnable() {
         @Override
         public void run() {

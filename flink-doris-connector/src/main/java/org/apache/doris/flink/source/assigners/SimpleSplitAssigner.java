@@ -29,6 +29,7 @@ import java.util.Optional;
  **/
 public class SimpleSplitAssigner implements DorisSplitAssigner {
 
+    // split集合
     private final ArrayList<DorisSourceSplit> splits;
 
     public SimpleSplitAssigner(Collection<DorisSourceSplit> splits) {
@@ -38,6 +39,7 @@ public class SimpleSplitAssigner implements DorisSplitAssigner {
     @Override
     public Optional<DorisSourceSplit> getNext(@Nullable String hostname) {
         final int size = splits.size();
+        // 返回最新的split
         return size == 0 ? Optional.empty() : Optional.of(splits.remove(size - 1));
     }
 
@@ -48,6 +50,7 @@ public class SimpleSplitAssigner implements DorisSplitAssigner {
 
     @Override
     public PendingSplitsCheckpoint snapshotState(long checkpointId) {
+        // 将split放入checkpoint
         return new PendingSplitsCheckpoint(splits);
     }
 

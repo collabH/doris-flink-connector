@@ -76,27 +76,51 @@ public class DorisSource<OUT> implements Source<OUT, DorisSourceSplit, PendingSp
         return this.boundedness;
     }
 
+    /**
+     * 创建SourceReader
+     * @param readerContext
+     * @return
+     * @throws Exception
+     */
     @Override
     public SourceReader<OUT, DorisSourceSplit> createReader(SourceReaderContext readerContext) throws Exception {
         return new DorisSourceReader<>(
                 options,
                 readOptions,
+                // doris数据反序列化与输出器
                 new DorisRecordEmitter<>(deserializer),
                 readerContext,
                 readerContext.getConfiguration()
         );
     }
 
+    /**
+     * 创建数据枚举器，负责读取split并且分配给特定的subtask
+     * @param context
+     * @return
+     * @throws Exception
+     */
     @Override
     public SplitEnumerator<DorisSourceSplit, PendingSplitsCheckpoint> createEnumerator(SplitEnumeratorContext<DorisSourceSplit> context) throws Exception {
         List<DorisSourceSplit> dorisSourceSplits = new ArrayList<>();
+        // 根据配置拉取doris的partition配置 主要包含db、table、tablet、beAddress等
         List<PartitionDefinition> partitions = RestService.findPartitions(options, readOptions, LOG);
+        // 构建DorisSourceSplit集合
         partitions.forEach(m -> dorisSourceSplits.add(new DorisSourceSplit(m)));
+        // 将split分配
         DorisSplitAssigner splitAssigner = new SimpleSplitAssigner(dorisSourceSplits);
 
+        // 构建数据源枚举器
         return new DorisSourceEnumerator(context, splitAssigner);
     }
 
+    /**
+     * 从ck中获取split，然后放入枚举器中
+     * @param context
+     * @param checkpoint
+     * @return
+     * @throws Exception
+     */
     @Override
     public SplitEnumerator<DorisSourceSplit, PendingSplitsCheckpoint> restoreEnumerator(
             SplitEnumeratorContext<DorisSourceSplit> context,
